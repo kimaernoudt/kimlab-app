@@ -1,0 +1,12 @@
+# build products
+build/
+.build/
+KIMLAB.app/
+# icon intermediates (KIMLAB.icns is kept so build.sh works without re-rendering)
+icon/KIMLAB.iconset/
+icon/KIMLAB-1024.png
+icon/status
+icon/log.txt
+# leftovers
+check.log
+.DS_Store

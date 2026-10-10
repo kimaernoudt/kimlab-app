@@ -1,0 +1,21 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='1024' height='1024' viewBox='0 0 1024 1024'>
+  <defs>
+    <linearGradient id='bg' x1='0' y1='0' x2='0' y2='1'>
+      <stop offset='0' stop-color='#2d3036'/>
+      <stop offset='1' stop-color='#101112'/>
+    </linearGradient>
+  </defs>
+  <rect x='100' y='100' width='824' height='824' rx='186' fill='url(#bg)'/>
+  <rect x='103' y='103' width='818' height='818' rx='183' fill='none' stroke='#ffffff' stroke-width='6'/>
+  <rect x='212' y='204' width='600' height='104' rx='26' fill='#34373d'/>
+  <rect x='252' y='245' width='260' height='22' rx='11' fill='#6a6f78'/>
+  <rect x='702' y='245' width='70' height='22' rx='11' fill='#6a6f78'/>
+  <rect x='212' y='352' width='600' height='104' rx='26' fill='#2fd16f'/>
+  <path d='M254 372 L254 436 L312 404 Z' fill='#0c2415'/>
+  <rect x='342' y='393' width='250' height='22' rx='11' fill='#0c2415' opacity='0.6'/>
+  <rect x='702' y='393' width='70' height='22' rx='11' fill='#0c2415' opacity='0.6'/>
+  <rect x='219' y='507' width='586' height='90' rx='22' fill='#1c1d20' stroke='#f5a623' stroke-width='14'/>
+  <rect x='258' y='541' width='220' height='22' rx='11' fill='#8b8f97'/>
+  <rect x='702' y='541' width='70' height='22' rx='11' fill='#8b8f97'/>
+  <path d='M224.1 703.6H249V738.8L284.9 703.6H313.7L267.3 749.2L318.5 800H287.4L249 762V800H224.1ZM332.5 703.6H357.3V800H332.5ZM387.5 703.6H419.2L441.1 755.2L463.2 703.6H494.8V800H471.3V729.5L449.1 781.5H433.3L411.1 729.5V800H387.5ZM525 703.6H549.9V781.2H593.5V800H525ZM673.6 782.4H634.7L628.6 800H603.6L639.3 703.6H669L704.7 800H679.7ZM640.9 764.5H667.4L654.2 726.2ZM761.9 740.9Q767.8 740.9 770.9 738.3Q773.9 735.7 773.9 730.7Q773.9 725.7 770.9 723.1Q767.8 720.5 761.9 720.5H748.2V740.9ZM762.8 783.1Q770.3 783.1 774 779.9Q777.8 776.7 777.8 770.3Q777.8 764.1 774.1 760.9Q770.3 757.8 762.8 757.8H748.2V783.1ZM785.9 748.4Q793.9 750.7 798.3 757Q802.7 763.2 802.7 772.4Q802.7 786.3 793.3 793.2Q783.8 800 764.6 800H723.3V703.6H760.6Q780.7 703.6 789.7 709.6Q798.8 715.7 798.8 729.1Q798.8 736.1 795.5 741.1Q792.2 746 785.9 748.4Z' fill='#e9eaec'/>
+</svg>
