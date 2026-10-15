@@ -97,8 +97,9 @@ func selfTest() -> Int32 {
                                    CountLine(label: "13   Bed", time: "LOOP", frac: -1, tone: 3)], next: "14   Next", clock: "21:00:00"))
     let px = canvas.data?.load(fromByteOffset: (CountdownCanvas.h - 1 - 341) * canvas.stride + 200 * 4, as: UInt32.self) ?? 0
     check("countdown draws its progress bar (pixel " + String(format: "%08x", px) + ")", canvas.image() != nil && px != 0xFF000000 && px != 0)
-    print("INFO  NDI library " + (NDISender.available ? "found" : "not installed (NDI out stays off)"))
     selfTestAudio(check)
+    // after the audio checks: loading NDI the first time can take long enough to upset their timing
+    print("INFO  NDI library " + (NDISender.available ? "found" : "not installed (NDI out stays off)"))
     print(fails == 0 ? "ALL PASS" : String(fails) + " FAILED")
     return fails == 0 ? 0 : 1
 }
