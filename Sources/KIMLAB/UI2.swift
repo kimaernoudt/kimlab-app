@@ -379,7 +379,7 @@ struct HelpView: View {
             "                     a stop audio   [ ] skip 5 s   1-8 shortcuts F1-F8",
             "",
             "OSC IN:  /cue/go  /cue/prev  /cue/next  /cue/stop  /cue/goto <id>  /shortcut/1..8",
-            "         /audio/stop  /audio/resetpeaks  /out/blackout  /out/test  /ui/lock",
+            "         /audio/stop  /audio/resetpeaks  /out/blackout  /out/test  /out/countdown  /out/ndi  /ui/lock",
             "         /timeline/skip <s>  /timeline/seek <s>  /tc HH:MM:SS:FF",
             "OSC OUT: /cue/fired <id> <name>  /cue/stopped  /tc  + each cue's OSC OUT address",
             "",

@@ -36,6 +36,7 @@ changing anything on the system. Swift Package Manager is broken by the same ins
 | Mixer.swift | voices (ring buffers), native mixer (routing, fades, mute/solo, pink, meters), file decoder threads |
 | LTC.swift | LTC generator and reader |
 | Video.swift | A/B video players, crossfade, blackout, test pattern, output window |
+| Countdown.swift | countdown window and its NDI sender |
 | Net.swift | OSC (UDP), CoreMIDI |
 | Show.swift, ShowIO.swift | cue logic: GO/standby, groups, auto-follow, timecode follow + chase, MIDI learn, OSC, editing, showfiles |
 | UI.swift, UI2.swift, UI3.swift | control window |
@@ -43,7 +44,7 @@ changing anything on the system. Swift Package Manager is broken by the same ins
 
 ## Differences from the TouchDesigner version (v22)
 
-- NDI / Syphon out: not built yet (needs the NDI SDK).
+- NDI out: only for the countdown screen so far (see below). Video output over NDI or Syphon is not built yet.
 - OGG audio is not supported (macOS cannot decode it). WAV, AIFF, MP3, FLAC, M4A, CAF work.
 - Video audio goes through the same mixer as audio cues, so OUT routing and LEVEL apply to it, including 5.1 files.
 - Video runs on the audio device's clock, so picture and sound do not drift apart on long files.
@@ -92,6 +93,21 @@ below the list = at the end. Older saves and CSV showfiles are converted when lo
 Next to the output screen selection. In a window: the window gets that pixel size. On a screen: that display is
 switched to the chosen mode for as long as KIMLAB runs (macOS restores it on quit); Native puts it back.
 Not tested on a real display yet.
+
+## Countdown screen
+
+- COUNTDOWN (left column, under OUTPUT) opens a window with the time left on the running cues. The picker next to it
+  puts it in a normal window (drag it to any screen; double-click or the green button for full screen, Esc to leave)
+  or fills a chosen screen (Esc or a double-click closes it there). Open/closed and the screen are saved.
+- Big: the cue or group started last, its name, the time left (amber from 30 s, red from 10 s) and a progress bar.
+  Below: up to three other running cues. Top: time of day and the standby cue. A group counts down to its subcue
+  with the most time left. HOLD counts as the end. A loop shows LOOP; an image without HOLD counts up (+00:12).
+- NDI sends the same 1920 x 1080 picture as an NDI source called `KIMLAB Countdown` (30 fps), also with the window
+  closed. NDI needs NDI Tools or the NDI SDK installed (ndi.video); KIMLAB loads the library when NDI is switched
+  on, so it builds and runs without it. Searched: `$NDI_RUNTIME_DIR_V6`/`V5`/`V4`, `KIMLAB.app/Contents/Frameworks`,
+  `~/Library/Application Support/KIMLAB/`, `/Library/NDI SDK for Apple/lib/macOS/`, `/usr/local/lib/`, `/opt/homebrew/lib/`.
+- MIDI learnable (actions `countdown`, `ndi`) and OSC `/out/countdown [0|1]`, `/out/ndi [0|1]`.
+- Not mirrored to the backup: each machine has its own countdown screen.
 
 ## Main / backup (REDUNDANCY box)
 

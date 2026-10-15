@@ -88,6 +88,12 @@ struct LeftColumn: View {
                 ResPicker()
                 Spacer(minLength: 0)
             }
+            HStack(spacing: 4) {
+                KButton(title: show.countdownOpen ? "COUNTDOWN ON" : "COUNTDOWN", action: "countdown", on: show.countdownOpen, height: 22).frame(width: 92)
+                CountdownPicker()
+                KButton(title: "NDI", action: "ndi", on: show.settings.countdownNDI, height: 22).frame(width: 60)
+                Spacer(minLength: 0)
+            }
             LazyVGrid(columns: cols5, spacing: 4) {
                 KButton(title: "BLACKOUT", action: "blackout", on: show.blackout, color: P.red)
                 KButton(title: "TEST", action: "test", on: show.testPattern)
