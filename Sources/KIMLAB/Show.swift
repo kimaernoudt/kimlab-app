@@ -89,10 +89,12 @@ final class Show: ObservableObject {
     @Published var peerAlive = false
     @Published var linkNote = ""
     @Published var syncStatus = ""
+    @Published var countdownOpen = false
 
     let live = LiveState()
     let mixer = Mixer()
     let video = VideoOut()
+    let countdown = Countdown()
     let osc = OSC()
     let midi = MIDI()
     let ltcEnc = LTCEncoder()
@@ -150,6 +152,7 @@ final class Show: ObservableObject {
         video.openWindow()
         outputOpen = true
         if !settings.outputRes.isEmpty { applyOutputRes() }
+        setupCountdown()
         configureLink()
         configureLTCIn()
         installKeys()
