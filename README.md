@@ -1,11 +1,12 @@
 # KIMLAB (native Mac app)
 
-Standalone version of the TouchDesigner cue player. No TouchDesigner, no Xcode.
+Cue player for live shows: audio, video and image cues, group cues, LTC timecode, OSC and MIDI, main/backup.
+No Xcode needed.
 
 ## Run
 
 Double-click `KIMLAB.app`. The cue list, shortcuts, MIDI map and settings are saved automatically in
-`~/Library/Application Support/KIMLAB/state.json`. SAVE / LOAD use the same CSV showfile format as the TouchDesigner version.
+`~/Library/Application Support/KIMLAB/state.json`. SAVE / LOAD read and write CSV showfiles.
 
 ## Build
 
@@ -42,7 +43,7 @@ changing anything on the system. Swift Package Manager is broken by the same ins
 | UI.swift, UI2.swift, UI3.swift | control window |
 | App.swift, SelfTestAudio.swift, LiveTest.swift | entry point and tests |
 
-## Differences from the TouchDesigner version (v22)
+## Notes
 
 - NDI out: only for the countdown screen so far (see below). Video output over NDI or Syphon is not built yet.
 - OGG audio is not supported (macOS cannot decode it). WAV, AIFF, MP3, FLAC, M4A, CAF work.
