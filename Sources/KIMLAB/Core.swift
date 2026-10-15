@@ -185,6 +185,9 @@ struct Settings: Codable, Equatable {
     var showFolder = ""
     var syncPort = 7110
     var receiveFolder = "~/Movies/KIMLAB Shows"
+    var countdownOpen = false
+    var countdownScreen = -1
+    var countdownNDI = false
 }
 
 struct SavedState: Codable {

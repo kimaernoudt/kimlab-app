@@ -270,7 +270,7 @@ extension VideoOut {
     func controlOn(_ idx: Int) -> Bool {
         guard idx >= 0, idx < NSScreen.screens.count else { return false }
         let s = NSScreen.screens[idx]
-        return NSApp.windows.contains { !($0 is OutputWindow) && $0.isVisible && $0.screen == s }
+        return NSApp.windows.contains { !($0 is OutputWindow) && !($0 is CountdownWindow) && $0.isVisible && $0.screen == s }
     }
     /// On startup the output never fills the screen the control window is on; it opens as a window instead.
     func startupIndex(_ wanted: Int) -> Int {

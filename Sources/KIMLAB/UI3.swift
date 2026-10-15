@@ -16,6 +16,20 @@ struct OutputPicker: View {
     }
 }
 
+/// Where the countdown window goes: a normal window, or filling one screen.
+struct CountdownPicker: View {
+    @EnvironmentObject var show: Show
+    var body: some View {
+        Picker("", selection: Binding(get: { show.settings.countdownScreen }, set: { show.setCountdownScreen($0) })) {
+            Text("Countdown in a window").tag(-1)
+            ForEach(0..<NSScreen.screens.count, id: \.self) { i in
+                Text("Countdown on screen " + String(i + 1) + ": " + NSScreen.screens[i].localizedName).tag(i)
+            }
+        }
+        .labelsHidden().frame(width: 214)
+    }
+}
+
 /// Main layout: three columns, timeline across the full width at the bottom.
 struct ContentView: View {
     @EnvironmentObject var show: Show

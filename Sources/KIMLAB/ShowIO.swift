@@ -46,6 +46,7 @@ extension Show {
         if tickCount % 30 == 0 { updateSys(); preloadStandby() }
         if tickCount % 60 == 0 && dirty { saveState() }
         publishLive(rows.isEmpty)
+        countdownTick()
     }
 
     func updateSys() {
@@ -260,6 +261,8 @@ extension Show {
         case "output":
             if video.windowOpen { video.closeWindow() } else { video.openWindow() }
             outputOpen = video.windowOpen
+        case "countdown": toggleCountdown()
+        case "ndi": toggleNDI()
         default:
             if a.hasPrefix("mute"), let n = Int(a.dropFirst(4)) { toggleOut(0, n - 1) }
             else if a.hasPrefix("solo"), let n = Int(a.dropFirst(4)) { toggleOut(1, n - 1) }
@@ -324,6 +327,8 @@ extension Show {
         case "/out/blackout": if flag == nil || flag != blackout { trigger("blackout") }
         case "/out/test": if flag == nil || flag != testPattern { trigger("test") }
         case "/ui/lock": if flag == nil || flag != locked { trigger("lock") }
+        case "/out/countdown": if flag == nil || flag != countdownOpen { trigger("countdown") }
+        case "/out/ndi": if flag == nil || flag != settings.countdownNDI { trigger("ndi") }
         case "/tc": if let t = TC.parse(text, fps: settings.fps) { oscTC = (t, Date()) }
         case "/timeline/skip": if let v = number { skip(v) }
         case "/timeline/seek": if let v = number { seekTimeline(seconds: v) }
