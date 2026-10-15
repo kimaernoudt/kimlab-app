@@ -9,6 +9,9 @@ struct CountLine: Equatable {
     var tone = 0        // 0 white, 1 amber (30 s or less), 2 red (10 s or less), 3 grey (no end)
 }
 
+/// Everything on the countdown screen. To add something to the screen: add a field here, fill it in
+/// Show.countFrame(), and draw it in its own function called from CountdownCanvas.draw(). The screen is
+/// only redrawn (and the same picture sent over NDI) when this value changes.
 struct CountFrame: Equatable {
     var lines: [CountLine] = []
     var next = ""
@@ -169,20 +172,30 @@ final class CountdownCanvas {
     static let red = CGColor(red: 1, green: 0.22, blue: 0.2, alpha: 1)
     static func color(_ tone: Int) -> CGColor { [white, amber, red, grey][max(0, min(3, tone))] }
 
+    /// The screen, top to bottom. Each part draws in its own band of the 1920 x 1080 picture (y = 0 is the bottom).
     func draw(_ f: CountFrame) {
-        let W = CGFloat(CountdownCanvas.w)
         ctx.setFillColor(CGColor(gray: 0, alpha: 1))
         ctx.fill(CGRect(x: 0, y: 0, width: W, height: CGFloat(CountdownCanvas.h)))
-        // top row: time of day left, next cue right
+        drawTopRow(f)           // y 960...1080
+        drawMain(f)             // y 320...960
+        drawOthers(f)           // y 0...300
+    }
+    private var W: CGFloat { CGFloat(CountdownCanvas.w) }
+
+    /// Time of day left, standby cue right.
+    private func drawTopRow(_ f: CountFrame) {
         text(f.clock, size: 48, color: CountdownCanvas.grey, x: 80, y: 1000, align: 0, maxW: 400, mono: true)
         if !f.next.isEmpty {
             text("NEXT  " + f.next, size: 48, color: CountdownCanvas.grey, x: W - 80, y: 1000, align: 2, maxW: 1300)
         }
+    }
+
+    /// The cue started last: name, big time left and progress bar.
+    private func drawMain(_ f: CountFrame) {
         guard let main = f.lines.first else {
             text("--:--", size: 400, color: CountdownCanvas.dim, x: W / 2, y: 420, align: 1, maxW: 1760, mono: true)
             return
         }
-        // the cue started last, big
         text(main.label, size: 76, color: CountdownCanvas.white, x: W / 2, y: 850, align: 1, maxW: 1760, bold: true)
         text(main.time, size: 400, color: CountdownCanvas.color(main.tone), x: W / 2, y: 420, align: 1, maxW: 1760, mono: true)
         if main.frac >= 0 {
@@ -191,7 +204,10 @@ final class CountdownCanvas {
             ctx.setFillColor(CountdownCanvas.color(main.tone))
             ctx.fill(CGRect(x: 120, y: 330, width: (W - 240) * CGFloat(main.frac) / 1000, height: 22))
         }
-        // the other running cues, smaller
+    }
+
+    /// Up to three other running cues, smaller.
+    private func drawOthers(_ f: CountFrame) {
         var y: CGFloat = 240
         for l in f.lines.dropFirst().prefix(3) {
             text(l.label, size: 56, color: CountdownCanvas.grey, x: 120, y: y, align: 0, maxW: 1300)
