@@ -37,6 +37,7 @@ user-facing behaviour of every feature; keep it up to date when behaviour change
 | Groups.swift, Link.swift | group cues (`GroupRun`), explicit group membership in the cue list |
 | Extras.swift | fade out / hold and other cue-timing helpers |
 | Sync.swift | main/backup redundancy, TCP helper, collect show folder + send to backup |
+| Countdown.swift | countdown window for running cues (offscreen canvas, window on a chosen screen, optional NDI out) |
 | Perf.swift | separate redraw tickers so meters don't redraw the cue list |
 | UI.swift … UI5.swift | control window (UI4 = header, UI5 = cue rows) |
 | SelfTestAudio.swift, LiveTest.swift, LinkTest.swift, SyncTest.swift, IdleTest.swift | tests |
@@ -54,5 +55,5 @@ user-facing behaviour of every feature; keep it up to date when behaviour change
 ## Open items
 
 - Cues inside a group are not shown indented.
-- NDI / Syphon output not built (needs the NDI SDK).
+- Syphon output not built. NDI out (countdown window only) loads libndi at runtime and stays off if it isn't installed.
 - Output resolution switching and main/backup between two real laptops are untested.
