@@ -1,12 +1,20 @@
 # KIMLAB (native Mac app)
 
-Native Mac cue player for live shows: audio, video and image cues, groups, LTC timecode, OSC/MIDI and
-main/backup redundancy.
+Cue player for live shows: audio, video and image cues, group cues, LTC timecode, OSC and MIDI, main/backup.
+No Xcode needed.
+
+## Download
+
+A ready-to-use build of the latest `main` is on the
+[Releases page](https://github.com/kimaernoudt/kimlab-app/releases/latest): download `KIMLAB.zip`, unzip it and
+move `KIMLAB.app` to Applications. The app is not notarized, so the first time right-click it and choose Open.
+Needs an Apple silicon Mac with macOS 15 or later. GitHub builds it after every change to `main`
+(`.github/workflows/build.yml`).
 
 ## Run
 
 Double-click `KIMLAB.app`. The cue list, shortcuts, MIDI map and settings are saved automatically in
-`~/Library/Application Support/KIMLAB/state.json`. SAVE / LOAD use CSV showfiles.
+`~/Library/Application Support/KIMLAB/state.json`. SAVE / LOAD read and write CSV showfiles.
 
 ## Build
 

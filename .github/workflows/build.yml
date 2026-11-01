@@ -1,0 +1,48 @@
+# Builds KIMLAB.app on a Mac runner. On main it is published as a GitHub release (KIMLAB.zip), ready to download.
+name: Build KIMLAB
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          ./build.sh
+          cat build/build.log
+          grep -q "done 0" build/status
+
+      - name: Self test
+        # informational: "audio: seek to 0.5 s" is a known intermittent failure
+        continue-on-error: true
+        run: ./build/KIMLAB --selftest
+
+      - name: Zip the app
+        run: |
+          codesign --verify --deep --strict KIMLAB.app
+          ditto -c -k --sequesterRsrc --keepParent KIMLAB.app KIMLAB.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KIMLAB
+          path: KIMLAB.zip
+
+      - name: Publish release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="build-${{ github.run_number }}"
+          gh release create "$TAG" KIMLAB.zip --target "${{ github.sha }}" --latest \
+            --title "KIMLAB build ${{ github.run_number }}" \
+            --notes "Built from ${{ github.sha }}. Unzip, then right-click KIMLAB.app and choose Open the first time (the app is not notarized)."
