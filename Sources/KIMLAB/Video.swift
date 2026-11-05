@@ -137,6 +137,13 @@ final class VideoOut: NSObject {
         players[idx].pause()
         if t > 0 { players[idx].seek(to: CMTime(seconds: t, preferredTimescale: 60000), toleranceBefore: .zero, toleranceAfter: .zero) }
         urls[idx] = url
+        loadedAt[idx] = t
+    }
+    /// Where the last load() parked the player (so a preloaded START point can be reused).
+    private(set) var loadedAt = [0.0, 0.0]
+    /// END trim: the player stops (and reports the end) here; 0 = the file's own end.
+    func setEnd(_ idx: Int, _ t: Double) {
+        players[idx].currentItem?.forwardPlaybackEndTime = t > 0 ? CMTime(seconds: t, preferredTimescale: 60000) : .invalid
     }
     func clear(_ idx: Int) {
         players[idx].pause()

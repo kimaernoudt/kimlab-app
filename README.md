@@ -77,12 +77,17 @@ metered but not sent anywhere; their channel number is greyed out.
 
 ## Cue timing
 
-- FADE IN: fade when the cue starts. FADE OUT: fade when it is stopped, replaced or its HOLD runs out
-  (empty = the default fade for STOP, or the next cue's fade in for a crossfade).
+- FADE IN: fade when the cue starts (audio level, video opacity). FADE OUT: fade when it is stopped, replaced
+  or its HOLD runs out (empty = the default fade for STOP, or the next cue's fade in for a crossfade).
+  A cue with a FADE OUT that plays to its end also fades out by itself, timed to reach silence / black at the end
+  point (not for loops, images or cues with HOLD). FOLLOW = end still fires at the end point.
+- START / END: play only part of an audio or video file. Seconds (`12.5`), `m:ss` or `h:mm:ss` into the file;
+  empty = file start / file end. A loop loops between START and END. The cue's position, remaining time,
+  timecode out and chase all count from START.
 - HOLD: seconds the cue stays up. After that it fades out and counts as ended, so FOLLOW = end fires the next cue.
   A video shorter than its HOLD keeps its last frame until the HOLD is over. An image without HOLD stays until replaced.
 - Image cues (png, jpg, tif, heic, gif, bmp, webp) show as type I and behave like video cues without sound.
-- Showfile CSV: extra columns `fade_out` and `hold`.
+- Showfile CSV: extra columns `fade_out`, `hold`, `start` and `end`.
 
 ## Cue list
 

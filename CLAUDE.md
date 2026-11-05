@@ -36,6 +36,7 @@ user-facing behaviour of every feature; keep it up to date when behaviour change
 | Show.swift, ShowIO.swift | cue logic: GO/standby, auto-follow, TC follow + chase, MIDI learn, OSC, editing, showfiles |
 | Groups.swift, Link.swift | group cues (`GroupRun`), explicit group membership in the cue list |
 | Extras.swift | fade out / hold and other cue-timing helpers |
+| Trim.swift | START / END trim and the automatic fade-out at a cue's end |
 | Sync.swift | main/backup redundancy, TCP helper, collect show folder + send to backup |
 | Countdown.swift | countdown window for running cues (offscreen canvas, window on a chosen screen, optional NDI out) |
 | Perf.swift | separate redraw tickers so meters don't redraw the cue list |

@@ -12,6 +12,8 @@ final class Playing {
     var started = Date()
     var launched = false
     var offset = 0.0
+    var base = 0.0          // START trim, seconds into the file; all other times here are relative to it
+    var endAt = 0.0         // END trim, seconds into the file; 0 = file end
     var fade = 0.0
     var followDone = false
     var stopping = false
@@ -366,12 +368,13 @@ final class Show: ObservableObject {
     // MARK: playback
 
     func makeVoice(url: URL, level: Float, fadeIn: Double, offset: Double, loop: Bool, route: String, p: Playing) {
+        let offset = p.base + offset
         guard let vi = mixer.acquire() else { message = "No free audio voice"; return }
         let v = mixer.voices[vi]
         v.reset(level: level, fadeIn: fadeIn, sampleRate: mixer.sampleRate, hold: true)
         p.voice = vi
         p.routeSpec = route
-        p.feeder = Feeder(url: url, voice: v, sampleRate: mixer.sampleRate, start: offset, loop: loop, routeSpec: route)
+        p.feeder = Feeder(url: url, voice: v, sampleRate: mixer.sampleRate, start: offset, loop: loop, routeSpec: route, end: p.endAt, loopFrom: p.base)
     }
 
     func playAudio(_ c: Cue, fade: Double, offset: Double) -> Playing? {
@@ -381,6 +384,7 @@ final class Show: ObservableObject {
         if playing.filter({ !$0.isVideo && !$0.stopping }).count >= 8 { message = "All 8 audio players are busy"; return nil }
         let p = Playing(cue: c.id, isVideo: false)
         p.offset = offset
+        (p.base, p.endAt) = trim(c)
         p.fade = fade
         makeVoice(url: URL(fileURLWithPath: c.file), level: c.levelLin, fadeIn: fade, offset: offset, loop: c.loop, route: c.audioOut, p: p)
         if p.voice == nil { return nil }
@@ -403,8 +407,13 @@ final class Show: ObservableObject {
             finish(videoOwner[old]!)
             idx = old
         }
-        if c.isImage { if video.urls[idx] != url || !video.imageShown[idx] { if !video.loadImage(idx, url: url) { message = "Could not open image: " + c.name } } } else if video.urls[idx] != url || offset > 0 { video.load(idx, url: url, at: offset) }
         let p = Playing(cue: c.id, isVideo: true)
+        if !c.isImage { (p.base, p.endAt) = trim(c) }
+        if c.isImage { if video.urls[idx] != url || !video.imageShown[idx] { if !video.loadImage(idx, url: url) { message = "Could not open image: " + c.name } } }
+        else {
+            if video.urls[idx] != url || offset > 0 || abs(video.loadedAt[idx] - p.base) > 0.0005 { video.load(idx, url: url, at: p.base + offset) }
+            video.setEnd(idx, p.endAt)
+        }
         p.offset = offset
         p.fade = fade
         p.video = idx
@@ -437,7 +446,7 @@ final class Show: ObservableObject {
                 if let f = p.feeder, f.noAudio { freeVoice(p) }
                 if let vi = p.voice { mixer.voices[vi].startHost.store(at, ordering: .sequentiallyConsistent) }
                 if let i = p.video {
-                    video.start(i, at: p.offset, host: vAt)
+                    video.start(i, at: p.base + p.offset, host: vAt)
                     video.show(i, fade: p.fade)
                 }
                 p.launched = true
@@ -508,7 +517,7 @@ final class Show: ObservableObject {
         p.chasePaused = false
         if let f = p.feeder, let vi = p.voice {
             let v = mixer.voices[vi]
-            f.seek(t)
+            f.seek(p.base + t)
             v.startHost.store(at, ordering: .sequentiallyConsistent)
             v.paused.store(false, ordering: .sequentiallyConsistent)
             if v.finished.load(ordering: .sequentiallyConsistent) {
@@ -516,7 +525,7 @@ final class Show: ObservableObject {
                 v.active.store(true, ordering: .sequentiallyConsistent)
             }
         }
-        if let i = p.video { video.start(i, at: t, host: hostAfter(max(0, lead + settings.avOffsetMs / 1000))) }
+        if let i = p.video { video.start(i, at: p.base + t, host: hostAfter(max(0, lead + settings.avOffsetMs / 1000))) }
     }
 
     func pause(_ p: Playing) {
@@ -527,12 +536,14 @@ final class Show: ObservableObject {
 
     func position(_ p: Playing) -> Double {
         if !p.launched { return p.offset }
-        if let i = p.video { return video.imageShown[i] ? Date().timeIntervalSince(p.started) : video.position(i) }
-        return p.feeder?.position() ?? 0
+        if let i = p.video { return video.imageShown[i] ? Date().timeIntervalSince(p.started) : max(0, video.position(i) - p.base) }
+        return max(0, (p.feeder?.position() ?? 0) - p.base)
     }
     func duration(_ p: Playing) -> Double {
-        if let i = p.video { return video.imageShown[i] ? (parseNum(cue(p.cue)?.hold ?? "") ?? 0) : video.duration(i) }
-        return p.feeder?.duration ?? 0
+        if let i = p.video, video.imageShown[i] { return parseNum(cue(p.cue)?.hold ?? "") ?? 0 }
+        let full = p.video.map { video.duration($0) } ?? (p.feeder?.duration ?? 0)
+        if full <= 0 { return 0 }
+        return max(0, (p.endAt > 0 ? min(p.endAt, full) : full) - p.base)
     }
 
     /// Loads the standby video paused in the idle player so GO starts without a hiccup.
@@ -544,7 +555,8 @@ final class Show: ObservableObject {
             if !c.hasFile || c.isAudio { continue }
             guard let idx = (videoOwner[0] == nil ? 0 : (videoOwner[1] == nil ? 1 : nil)) else { return }
             let url = URL(fileURLWithPath: c.file)
-            if video.urls[idx] != url && FileManager.default.fileExists(atPath: c.file) { if c.isImage { _ = video.loadImage(idx, url: url) } else { video.load(idx, url: url, at: 0) } }
+            let at = c.isImage ? 0 : trim(c).0
+            if (video.urls[idx] != url || (!c.isImage && abs(video.loadedAt[idx] - at) > 0.0005)) && FileManager.default.fileExists(atPath: c.file) { if c.isImage { _ = video.loadImage(idx, url: url) } else { video.load(idx, url: url, at: at) } }
             return
         }
     }

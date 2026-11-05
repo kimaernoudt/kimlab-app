@@ -247,9 +247,13 @@ final class Feeder {
     private var routeSpec: String
     private var cancelled = false
     private var lastSeek = 0.0
+    /// Trim: playback stops (or loops back to `loopFrom`) at `end` seconds into the file; 0 = file end.
+    private let end: Double
+    private let loopFrom: Double
 
-    init(url: URL, voice: Voice, sampleRate: Double, start: Double, loop: Bool, routeSpec: String) {
+    init(url: URL, voice: Voice, sampleRate: Double, start: Double, loop: Bool, routeSpec: String, end: Double = 0, loopFrom: Double = 0) {
         self.url = url; self.voice = voice; self.sampleRate = sampleRate; self.loop = loop; self.routeSpec = routeSpec
+        self.end = end; self.loopFrom = max(0, loopFrom)
         lastSeek = start
         segs = [(0, Int(start * sampleRate))]
         let t = Thread { [self] in self.run(start) }
@@ -289,7 +293,13 @@ final class Feeder {
             rd.add(o)
             outs.append(o)
         }
-        rd.timeRange = CMTimeRange(start: CMTime(seconds: max(0, t), preferredTimescale: 48000), duration: .positiveInfinity)
+        let t0 = max(0, t)
+        var len = CMTime.positiveInfinity
+        if end > 0 {
+            if t0 >= end - 0.0005 { return nil }
+            len = CMTime(seconds: end - t0, preferredTimescale: 48000)
+        }
+        rd.timeRange = CMTimeRange(start: CMTime(seconds: t0, preferredTimescale: 48000), duration: len)
         guard rd.startReading() else { return nil }
         return (rd, outs)
     }
@@ -385,10 +395,10 @@ final class Feeder {
             }
             if !anyData && !done.contains(false) {
                 if loop {
-                    reader = open(asset, use, at: 0)
+                    reader = open(asset, use, at: loopFrom)
                     for i in 0..<done.count { done[i] = false }
                     lock.lock()
-                    segs.append((wr, 0))
+                    segs.append((wr, Int(loopFrom * sampleRate)))
                     if segs.count > 8 { segs.removeFirst(segs.count - 4) }
                     lock.unlock()
                     if reader == nil { ended = true; voice.eof.store(true, ordering: .sequentiallyConsistent) }

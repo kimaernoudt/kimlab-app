@@ -110,17 +110,19 @@ struct Cue: Identifiable, Codable, Equatable {
     var fadeOut = ""
     var hold = ""
     var parent = ""
+    var start = ""
+    var end = ""
 
     static let audioExt: Set<String> = ["wav", "mp3", "aif", "aiff", "flac", "m4a", "aac", "caf"]
     static let columns = ["id", "name", "file", "tc", "fade", "loop", "level", "audio_out", "with", "follow", "mode",
-                          "notes", "midi_in", "midi_out", "osc_out", "chase", "group", "fade_out", "hold"]
+                          "notes", "midi_in", "midi_out", "osc_out", "chase", "group", "fade_out", "hold", "start", "end"]
     var hasFile: Bool { !file.isEmpty }
     static let imageExt: Set<String> = ["png", "jpg", "jpeg", "tif", "tiff", "heic", "gif", "bmp", "webp"]
     var isImage: Bool { Cue.imageExt.contains((file as NSString).pathExtension.lowercased()) }
     var isAudio: Bool { Cue.audioExt.contains((file as NSString).pathExtension.lowercased()) }
     var levelLin: Float { dbToLin(parseNum(level) ?? 0) }
     var row: [String] {
-        [num, name, file, tc, fade, loop ? "1" : "0", level, audioOut, with ? "1" : "", follow, mode, notes, midiIn, midiOut, oscOut, chase, group ? "1" : "", fadeOut, hold]
+        [num, name, file, tc, fade, loop ? "1" : "0", level, audioOut, with ? "1" : "", follow, mode, notes, midiIn, midiOut, oscOut, chase, group ? "1" : "", fadeOut, hold, start, end]
     }
     init() {}
     init(header: [String], row: [String]) {
@@ -132,6 +134,7 @@ struct Cue: Identifiable, Codable, Equatable {
         level = g("level"); if level.isEmpty { level = "0" }
         audioOut = g("audio_out"); with = g("with") == "1"; follow = g("follow"); mode = g("mode"); notes = g("notes")
         midiIn = g("midi_in"); midiOut = g("midi_out"); oscOut = g("osc_out"); chase = g("chase"); group = g("group") == "1"; fadeOut = g("fade_out"); hold = g("hold")
+        start = g("start"); end = g("end")
     }
 }
 
