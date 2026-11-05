@@ -233,6 +233,8 @@ struct CueEditor: View {
                 Field(label: "TC", text: bind(\.tc), width: 96)
             }
             HStack(spacing: 6) {
+                Field(label: "START", text: bind(\.start), width: 64)
+                Field(label: "END", text: bind(\.end), width: 64)
                 Field(label: "MIDI IN", text: bind(\.midiIn), width: 70)
                 Field(label: "MIDI OUT", text: bind(\.midiOut), width: 70)
                 Field(label: "OSC OUT", text: bind(\.oscOut))

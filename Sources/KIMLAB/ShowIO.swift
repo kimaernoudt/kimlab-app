@@ -18,6 +18,7 @@ extension Show {
         for p in Array(playing) where !p.stopping && p.launched {
             guard let c = cue(p.cue) else { stop(p, fade: 0.05); continue }
             if holdDone(p, c) { continue }
+            if endFade(p, c) { continue }
             if let vi = p.voice {
                 let v = mixer.voices[vi]
                 if !p.isVideo && v.finished.load(ordering: .sequentiallyConsistent) { ended(p); continue }

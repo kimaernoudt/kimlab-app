@@ -82,4 +82,19 @@ func selfTestAudio(_ check: (String, Bool) -> Void) {
     check("audio: fade-out frees the voice", v2.finished.load(ordering: .sequentiallyConsistent))
     f2.cancel()
     mixer.release(wi)
+
+    // START / END trim: 0.25 s .. 0.5 s = 0.25 s = about 23 blocks of 512
+    guard let ti = mixer.acquire() else { check("audio: trim voice", false); return }
+    let v3 = mixer.voices[ti]
+    v3.reset(level: 1, fadeIn: 0, sampleRate: 48000, hold: false)
+    let f3 = Feeder(url: url, voice: v3, sampleRate: 48000, start: 0.25, loop: false, routeSpec: "1", end: 0.5, loopFrom: 0.25)
+    var tb = 0
+    while !v3.finished.load(ordering: .sequentiallyConsistent) && tb < 400 {
+        _ = waitFor { buffered(v3) >= n || v3.eof.load(ordering: .sequentiallyConsistent) }
+        render()
+        tb += 1
+    }
+    check("audio: START/END plays only the trimmed part (" + String(tb) + " blocks)", v3.finished.load(ordering: .sequentiallyConsistent) && tb >= 22 && tb <= 28)
+    f3.cancel()
+    mixer.release(ti)
 }

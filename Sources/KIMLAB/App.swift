@@ -45,13 +45,16 @@ func selfTest() -> Int32 {
     c.file = "/x/y.wav"
     c.loop = true
     c.with = true
+    c.start = "1:02.5"
+    c.end = "70"
     let rows = CSV.parse(CSV.write([Cue.columns, c.row]))
     var csvOK = false
     if rows.count == 2 {
         let back = Cue(header: rows[0], row: rows[1])
-        csvOK = back.name == c.name && back.loop && back.with && back.file == c.file && back.isAudio
+        csvOK = back.name == c.name && back.loop && back.with && back.file == c.file && back.isAudio && back.start == c.start && back.end == c.end
     }
     check("showfile CSV roundtrip", csvOK)
+    check("trim time parse", parseClock("12.5") == 12.5 && parseClock("1:02.5") == 62.5 && parseClock("1:00:00") == 3600 && parseClock("") == nil && parseClock("x") == nil)
 
     let msg = OSC.decode(OSC.encode("/cue/goto", [7, "x", 1.5, true]))
     var oscOK = false
