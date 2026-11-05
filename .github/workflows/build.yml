@@ -1,4 +1,5 @@
-# Builds KIMLAB.app on a Mac runner. On main it is published as a GitHub release (KIMLAB.zip), ready to download.
+# Builds KIMLAB.app on a Mac runner. On main it is published as a GitHub release (KIMLAB.zip), ready to download;
+# older releases and their tags are deleted so only the latest stays.
 name: Build KIMLAB
 
 on:
@@ -46,3 +47,7 @@ jobs:
           gh release create "$TAG" KIMLAB.zip --target "${{ github.sha }}" --latest \
             --title "KIMLAB build ${{ github.run_number }}" \
             --notes "Built from ${{ github.sha }}. Unzip, then right-click KIMLAB.app and choose Open the first time (the app is not notarized)."
+          # keep only the latest release: delete older releases and their tags
+          gh release list --limit 100 --json tagName -q '.[].tagName' | grep -vx "$TAG" | while read -r old; do
+            gh release delete "$old" --cleanup-tag --yes
+          done

@@ -1,156 +1,134 @@
-# KIMLAB (native Mac app)
+# KIMLAB
 
-Cue player for live shows: audio, video and image cues, group cues, LTC timecode, OSC and MIDI, main/backup.
-No Xcode needed.
+Cue player for live shows on the Mac: audio, video and image cues, group cues, LTC timecode, OSC and MIDI control,
+a countdown screen with NDI out, and main/backup between two Macs.
 
-## Download
+## Install
 
-A ready-to-use build of the latest `main` is on the
-[Releases page](https://github.com/kimaernoudt/kimlab-app/releases/latest): download `KIMLAB.zip`, unzip it and
-move `KIMLAB.app` to Applications. The app is not notarized, so the first time right-click it and choose Open.
-Needs an Apple silicon Mac with macOS 15 or later. GitHub builds it after every change to `main`
-(`.github/workflows/build.yml`).
+1. Download `KIMLAB.zip` from the [latest release](https://github.com/kimaernoudt/kimlab-app/releases/latest).
+2. Unzip it and move `KIMLAB.app` to Applications.
+3. The first time, right-click `KIMLAB.app` and choose **Open** (the app is not notarized). After that a
+   double-click works.
 
-## Run
+Needs an Apple silicon Mac with macOS 15 or later. A new release is built after every change to `main`; only the
+latest one is kept.
 
-Double-click `KIMLAB.app`. The cue list, shortcuts, MIDI map and settings are saved automatically in
-`~/Library/Application Support/KIMLAB/state.json`. SAVE / LOAD read and write CSV showfiles.
+## Basics
 
-## Build
+- Drop media files on the cue list, or use ADD. Audio: WAV, AIFF, MP3, FLAC, M4A, AAC, CAF (no OGG). Video: anything
+  macOS plays. Images: PNG, JPG, TIFF, HEIC, GIF, BMP, WebP.
+- GO fires the standby cue (marked `+`) and moves standby to the next cue. Playing cues are marked `>`.
+- The cue list, shortcuts, MIDI map and settings are saved automatically
+  (`~/Library/Application Support/KIMLAB/state.json`). SAVE / LOAD write and read CSV showfiles.
+- HELP in the header shows the keys, OSC addresses and the current MIDI map.
+
+### Cue fields
+
+| field | what |
+|---|---|
+| FADE / FADE OUT | fade in when the cue starts; fade out when it stops (empty = default fade, or the next cue's fade in for a crossfade) |
+| LEVEL | dB |
+| OUT | audio outputs: `1-2`, `3,4`, `5-12`, or `5` (start at output 5 and use as many as the file has) |
+| LOOP | loop the file |
+| HOLD | seconds the cue stays up, then it fades out and counts as ended. Images without HOLD stay until replaced |
+| FOLLOW | auto-fire the next cue after N seconds, or `end` when this cue is done |
+| WITH (`&`) | start together with the cue above |
+| REPLACE | fade out other audio when this cue starts |
+| TC | timecode at which the cue fires when TC FOLLOW is on |
+| MIDI IN / MIDI OUT / OSC OUT | note that fires this cue; note and OSC address sent when it fires |
+
+### Group cues
+
+- GROUP adds a group cue. IN GROUP or dragging a cue onto a group moves it in or out. Files dropped on a group go into it.
+- GO on a group starts all its subcues together. FOLLOW `end` waits for every subcue.
+- The chevron folds a group. UP, DOWN, DUPLICATE and drag move or copy it as a whole. Deleting a group keeps its subcues.
+
+### Video and output
+
+- Pick the output (a window or a screen) and its resolution in the header. Video crossfades between two players.
+- BLACKOUT and TEST (test pattern) act on the output.
+- Video sound goes through the same mixer as audio cues (OUT and LEVEL apply, 5.1 too) and runs on the audio
+  device's clock, so picture and sound don't drift apart.
+- The mixer always shows 8 output strips with mute, solo, meters and pink noise. Outputs the device doesn't have are
+  greyed out.
+
+### Shortcuts
+
+F1 to F8 are shortcut buttons; right-click one to edit it.
+
+## Keyboard
+
+With KEYS on: space GO, left/right PREV/NEXT, up/down select, `x` STOP, `a` stop audio, `b` BLACKOUT, `t` TEST,
+`[` / `]` skip 5 s, `1`-`8` shortcuts. Keys are ignored while typing in a field.
+
+## Timecode (LTC)
+
+- TC IN: LTC from an audio input (device and channel) or `/tc` over OSC, at 24, 25 or 30 fps.
+- TC FOLLOW: cues fire when the incoming timecode passes their TC. TC CHASE also keeps playing cues locked to the
+  timecode: they jump when it jumps and pause when it stops. Chase can be switched off per cue.
+- TC OUT: generates LTC on a chosen output device and channel (SEND TC), and sends `/tc` over OSC.
+
+## OSC
+
+Listens on UDP port 7000; sends to 127.0.0.1:7001 by default (both set in the OSC box).
+
+| in | does |
+|---|---|
+| `/cue/go`, `/cue/prev`, `/cue/next`, `/cue/stop` | same as the buttons |
+| `/cue/goto <id>` | fire the cue with that number |
+| `/shortcut/1` … `/shortcut/8` | fire a shortcut |
+| `/audio/stop`, `/audio/resetpeaks` | stop audio, reset meter peaks |
+| `/out/blackout`, `/out/test`, `/out/countdown`, `/out/ndi`, `/ui/lock` | toggle, or set with `0`/`1` |
+| `/timeline/skip <s>`, `/timeline/seek <s>` | move the cue on the timeline |
+| `/tc HH:MM:SS:FF` | timecode in |
+
+Out: `/cue/fired <id> <name>`, `/cue/stopped`, `/tc`, and each cue's own OSC OUT address.
+
+## MIDI
+
+Choose the MIDI in and out ports in the MIDI box. LEARN, then click a button and send a note or CC to map it; LEARN
+again on a mapped button clears it. A cue's MIDI IN note fires that cue; its MIDI OUT note is sent when it fires.
+
+## Countdown screen
+
+- COUNTDOWN opens a window with the time left on running cues: big for the cue or group started last (amber from
+  30 s, red from 10 s, with a progress bar), smaller for up to three others, plus time of day and the standby cue.
+- Put it in a normal window or full screen on a chosen screen (Esc or double-click to leave).
+- NDI sends the same picture (1920 × 1080, 30 fps) as the source `KIMLAB Countdown`, also with the window closed.
+  Install [NDI Tools](https://ndi.video) or the NDI SDK first; without it the NDI switch stays off.
+
+## Main and backup
+
+Run KIMLAB on two Macs on the same network.
+
+1. In the REDUNDANCY box set one Mac to MAIN and the other to BACKUP, and give each the other's IP address
+   (UDP port 7100).
+2. On the main, COLLECT copies all media into a show folder; SEND TO BACKUP sends that folder to the backup over the
+   network (TCP port 7110, only changed files). The backup stores it in `~/Movies/KIMLAB Shows/` and loads it.
+3. The main mirrors GO, STOP, standby, blackout, test and seeks. The backup resyncs itself when it drifts or joins
+   late, and stays quiet on OSC/MIDI while the main is alive.
+4. If the main's heartbeat stops for 2 s, the backup shows a red banner and beeps.
+
+SENSE TONE puts a 1 kHz tone on a chosen output while the app is alive, for an automatic audio switcher. For a
+tighter lock, let both Macs follow the same LTC. There is no password, so use it on a show network.
+
+## Build from source
+
+Needs Apple's Command Line Tools (`xcode-select --install`), no Xcode.
 
     ./build.sh          # builds KIMLAB.app (about 20 s), log in build/build.log
     ./build.sh check    # type-check only
 
-Needs Apple's Command Line Tools only. The script works around a stale file in this Mac's Command Line Tools
-install (`/Library/Developer/CommandLineTools/usr/include/swift/module.modulemap`, left over from 2023) without
-changing anything on the system. Swift Package Manager is broken by the same install, so `Package.swift` is not used.
+Tests:
 
-## Tests
+    ./build/KIMLAB --selftest                                   # no audio device needed
+    ./KIMLAB.app/Contents/MacOS/KIMLAB --livetest /tmp/report.txt  # real audio and video at -80 dB, then quits
 
-    ./build/KIMLAB --selftest
-        Timecode, routing, CSV, OSC, LTC encode -> decode, and a real file through decoder -> voice -> mixer
-        (routing, level, mute, solo, pink, seek, loop, end of file, fade-out). No audio device needed.
+`icon/make_icon.sh` rebuilds the app icon from `icon/kimlab.svg`. GitHub Actions (`.github/workflows/build.yml`)
+builds every pull request and publishes every change to `main` as the latest release.
 
-    ./KIMLAB.app/Contents/MacOS/KIMLAB --livetest /tmp/report.txt
-        Plays generated test media (video + linked audio, at -80 dB) through the real audio device and video
-        players for a few seconds, measures GO latency and audio/video sync, tests seek and STOP, writes the
-        report and quits. Nothing is saved in this mode.
+## Known limits
 
-## Source layout (Sources/KIMLAB)
-
-| file | what |
-|---|---|
-| Core.swift | timecode, routing parser, CSV, cue / shortcut / settings models |
-| AudioIO.swift | Core Audio devices, output and input units |
-| Mixer.swift | voices (ring buffers), native mixer (routing, fades, mute/solo, pink, meters), file decoder threads |
-| LTC.swift | LTC generator and reader |
-| Video.swift | A/B video players, crossfade, blackout, test pattern, output window |
-| Countdown.swift | countdown window and its NDI sender |
-| Net.swift | OSC (UDP), CoreMIDI |
-| Show.swift, ShowIO.swift | cue logic: GO/standby, groups, auto-follow, timecode follow + chase, MIDI learn, OSC, editing, showfiles |
-| UI.swift, UI2.swift, UI3.swift | control window |
-| App.swift, SelfTestAudio.swift, LiveTest.swift | entry point and tests |
-
-## Notes
-
-- NDI out: only for the countdown screen so far (see below). Video output over NDI or Syphon is not built yet.
-- OGG audio is not supported (macOS cannot decode it). WAV, AIFF, MP3, FLAC, M4A, CAF work.
-- Video audio goes through the same mixer as audio cues, so OUT routing and LEVEL apply to it, including 5.1 files.
-- Video runs on the audio device's clock, so picture and sound do not drift apart on long files.
-- Output: pick a window or a screen in the header (saved). Default is a window.
-- F1-F8: right-click a button to edit it.
-
-## Group cues
-
-- GROUP (cue editor) adds a group cue. With a cue selected, that cue becomes the group's first subcue.
-- With a group or subcue selected, ADD and dropped files go into that group. LINK moves a cue in or out.
-- GO on a group starts all its subcues together. The group row shows the subcue with the most time left.
-- A group has its own number, name, TC, FOLLOW (seconds, or `end` = when every subcue is done), MIDI IN/OUT and OSC OUT.
-- The chevron folds the group. UP / DOWN / DUPLICATE move or copy a group as a whole block.
-- With a playing group selected, the timeline moves all its subcues together.
-- Showfile CSV: extra column `group` (1 = group cue); subcues use the existing `with` column.
-
-## Audio outs
-
-The mixer always has at least 8 output buses, shown as 8 strips. Outputs the current device does not have are
-metered but not sent anywhere; their channel number is greyed out.
-
-## Cue timing
-
-- FADE IN: fade when the cue starts. FADE OUT: fade when it is stopped, replaced or its HOLD runs out
-  (empty = the default fade for STOP, or the next cue's fade in for a crossfade).
-- HOLD: seconds the cue stays up. After that it fades out and counts as ended, so FOLLOW = end fires the next cue.
-  A video shorter than its HOLD keeps its last frame until the HOLD is over. An image without HOLD stays until replaced.
-- Image cues (png, jpg, tif, heic, gif, bmp, webp) show as type I and behave like video cues without sound.
-- Showfile CSV: extra columns `fade_out` and `hold`.
-
-## Cue list
-
-- Drag a row onto a group to make it the group's last subcue, onto a subcue to place it before that subcue,
-  onto any other cue to place it before that cue, or below the list to move it to the end.
-- A group moves as one block and cannot go inside another group.
-
-## Groups, version 2
-
-Each subcue now stores the id of its group, so the indent cannot change by accident. IN GROUP (cue editor) puts a
-cue into the group right above it or takes it out. Deleting a group keeps its subcues as normal cues.
-Files from Finder land where they are dropped: on a group or subcue = into that group, on another cue = before it,
-below the list = at the end. Older saves and CSV showfiles are converted when loaded.
-
-## Output resolution
-
-Next to the output screen selection. In a window: the window gets that pixel size. On a screen: that display is
-switched to the chosen mode for as long as KIMLAB runs (macOS restores it on quit); Native puts it back.
-Not tested on a real display yet.
-
-## Countdown screen
-
-- COUNTDOWN (left column, under OUTPUT) opens a window with the time left on the running cues. The picker next to it
-  puts it in a normal window (drag it to any screen; double-click or the green button for full screen, Esc to leave)
-  or fills a chosen screen (Esc or a double-click closes it there). Open/closed and the screen are saved.
-- Big: the cue or group started last, its name, the time left (amber from 30 s, red from 10 s) and a progress bar.
-  Below: up to three other running cues. Top: time of day and the standby cue. A group counts down to its subcue
-  with the most time left. HOLD counts as the end. A loop shows LOOP; an image without HOLD counts up (+00:12).
-- NDI sends the same 1920 x 1080 picture as an NDI source called `KIMLAB Countdown` (30 fps), also with the window
-  closed. NDI needs NDI Tools or the NDI SDK installed (ndi.video); KIMLAB loads the library when NDI is switched
-  on, so it builds and runs without it. Searched: `$NDI_RUNTIME_DIR_V6`/`V5`/`V4`, `KIMLAB.app/Contents/Frameworks`,
-  `~/Library/Application Support/KIMLAB/`, `/Library/NDI SDK for Apple/lib/macOS/`, `/usr/local/lib/`, `/opt/homebrew/lib/`.
-- MIDI learnable (actions `countdown`, `ndi`) and OSC `/out/countdown [0|1]`, `/out/ndi [0|1]`.
-- Not mirrored to the backup: each machine has its own countdown screen.
-
-## Main / backup (REDUNDANCY box)
-
-- OFF (bypass): plain single-machine player, nothing is sent or received.
-- Set one laptop to MAIN and one to BACKUP, give each the other's IP address, and load the same showfile on both.
-  Default port 7100 (UDP) both ways.
-- The main mirrors GO / fired cues, STOP, standby, blackout, test and timeline seeks to the backup.
-- Heartbeat twice a second. No heartbeat for 2 s = red banner in the header, a message and a beep.
-- The backup compares what is playing with the main and asks for a resync when they differ for more than 1.5 s
-  (also when it joins late). It restarts the cues at the main's position.
-- While the main is alive the backup does not send cue OSC or MIDI to other gear. When the main is lost it does.
-- Both machines can also follow the same LTC (TC FOLLOW + TC CHASE) for a tighter lock.
-- SENSE TONE: 1 kHz at -20 dB on the chosen output, only while the app's main loop is alive, for an automatic
-  audio switcher such as a Radial SW8. Video goes through an external switcher.
-- Tested with two copies inside one process on one Mac. Not tested between two laptops or with a switcher.
-
-## Pending (build at the end)
-
-- Bug: cues inside a group are not shown indented.
-
-## Show folder and sending it to the backup
-
-- COLLECT (right column) asks for a show folder, copies every cue's media into `<folder>/media/`, points the cues
-  at those copies and writes `<folder>/show.csv` with paths relative to the folder. The original files stay where
-  they are. The folder then works on any Mac: LOAD its show.csv.
-- SEND TO BACKUP (needs REDUNDANCY = MAIN and a connected backup) first brings the show folder up to date, then
-  sends it over the network to the backup KIMLAB (TCP port 7110). Media that is already there with the same size
-  and date is skipped. No Remote Login, password or AirDrop needed.
-- The backup stores shows in `~/Movies/KIMLAB Shows/<show name>/` and loads the received show as soon as nothing
-  is playing. It never deletes files there.
-- Only a KIMLAB in BACKUP mode accepts shows, and only into that folder. There is no password on it, so use it on
-  a show network, not on public Wi-Fi.
-
-## App icon
-
-`icon/kimlab.svg` is the source. `icon/make_icon.sh` renders it and rebuilds `icon/KIMLAB.icns`; `build.sh` copies
-that into the app.
+- Cues inside a group are not shown indented.
+- Video out over NDI or Syphon is not built (NDI is for the countdown screen only).
+- Output resolution switching and main/backup between two real Macs are untested.
